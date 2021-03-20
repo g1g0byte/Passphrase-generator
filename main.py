@@ -39,6 +39,40 @@ def should_space_words_input():
 		else:
 			return False
 
+def should_random_numbers_input():
+	while True:
+		try:
+			should_random_numbers = int(input("Do you want a random number at end of each word? (yes=1,no=0) : "))
+			if should_random_numbers not in [1,0]:
+				print("Please enter 1 (yes) or 0 (no)!\n")
+				continue
+
+		except ValueError:	# Handle if input is not an integer
+			print("Please enter 1 (yes) or 0 (no)!\n")
+			continue
+		
+		if should_random_numbers == 1:
+			return True
+		else:
+			return False
+
+def should_capitalise_input():
+	while True:
+		try:
+			should_capitalise = int(input("Do you want to capitalise the first letter of each word? (yes=1,no=0) : "))
+			if should_capitalise not in [1,0]:
+				print("Please enter 1 (yes) or 0 (no)!\n")
+				continue
+
+		except ValueError:	# Handle if input is not an integer
+			print("Please enter 1 (yes) or 0 (no)!\n")
+			continue
+		
+		if should_capitalise == 1:
+			return True
+		else:
+			return False
+
 def generate_word_codes(amount_of_words):
 	word_codes=[]
 	for i in range(amount_of_words):
@@ -59,20 +93,42 @@ def find_words_list(words_list,word_codes):
 			quit()
 	return selected_words
 
-def create_passphrase(selected_words):
-	passphrase = ''.join(selected_words)
+def create_passphrase(selected_words, should_space_words, should_capitalise, should_random_numbers):
+	amount_of_words = len(selected_words)
+	if (should_capitalise):
+		for i in range(amount_of_words):
+			selected_words[i] = selected_words[i].capitalize()
+	
+	numbers=['' for i in range(amount_of_words)]
+	add_number_chance = 50
+	if (should_random_numbers):
+		for i in range(len(numbers)):
+			chance = random.randint(1,100)
+			if chance <= add_number_chance:
+				numbers[i] = str(random.SystemRandom().randint(1, 6))
+
+	if (should_space_words):
+		space = ' '
+	else:
+		space = ''
+	
+	passphrase=''
+	for i in range(amount_of_words):
+		passphrase = passphrase+selected_words[i]+numbers[i]+space
 	return passphrase
 
 # main program
+words_list = read_words_file()
 #-------------------------------------------------
 amount_of_words = amount_of_words_input()
 should_space_words = should_space_words_input()
+should_capitalise = should_capitalise_input()
+should_random_numbers = should_random_numbers_input()
 #-------------------------------------------------
-words_list = read_words_file()
 word_codes = generate_word_codes(amount_of_words)
-selected_words = find_words_list(words_list,word_codes)
+selected_words = find_words_list(words_list, word_codes)
 print(word_codes)
 print(selected_words)
 #-------------------------------------------------
-passphrase = create_passphrase(selected_words)
+passphrase = create_passphrase(selected_words, should_space_words, should_capitalise, should_random_numbers)
 print(passphrase)
