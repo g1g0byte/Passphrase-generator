@@ -1,16 +1,8 @@
-import csv,random
+import random,words_file
 from tkinter import *
 
-def read_words_file():
-	words_list = {}
-	with open('words.csv', 'r') as f:
-		reader = csv.reader(f, delimiter='\t')
-		for row in reader:
-			words_list.update({row[0]:row[1]})
-	return words_list
-
 def create_passphrase(words_list,amount_of_words,should_space_words, should_capitalise, should_random_numbers):
-	# Create list of random word codes
+	# create list of random word codes
 	word_codes=[]
 	for i in range(amount_of_words):
 		word_code=''
@@ -19,7 +11,7 @@ def create_passphrase(words_list,amount_of_words,should_space_words, should_capi
 			word_code += str(roll)
 		word_codes.append(word_code)
 
-	# Find words that match the generated word codes
+	# find words that match the generated word codes
 	selected_words=[]
 	for i in range(len(word_codes)):
 		# loop through each key in words_list to find matching word code
@@ -49,42 +41,53 @@ def create_passphrase(words_list,amount_of_words,should_space_words, should_capi
 	passphrase=''
 	for i in range(amount_of_words):
 		passphrase += selected_words[i]+numbers[i]+space
-	
-	passphrase_label = Label(root,text=passphrase)
-	passphrase_label.grid()
-	return passphrase
+	passphrase = passphrase.rstrip()	# remove last space at end of passphrase
 
-# main program
-words_list = read_words_file()
+	# clear the passphrase text box then insert new passphrase
+	passphrase_text.delete(0, END)
+	passphrase_text.insert(0, passphrase)
+
+	# clear the users clipboard and add passphrase to it
+	root.clipboard_clear()
+	root.clipboard_append(passphrase)
 
 # tkinter code
 root = Tk()
 root.title("Passphrase generator")
-root.geometry("300x400") 
+root.geometry("400x500")
 
 amount_of_words_title = Label(root,text="Amount of words:")
 amount_of_words_inputfield = Entry(root,width=2)
 amount_of_words_inputfield.insert(0, 4)
 
 should_space_words = IntVar()
-space_words_checkbutton = Checkbutton(root,text="Space between words",variable=should_space_words)
+space_words_checkbutton = Checkbutton(root,text="Space between words",variable=should_space_words,width="20")
 space_words_checkbutton.select()
 
 should_capitalise = IntVar()
-capitalise_checkbutton = Checkbutton(root,text="capitalise word",variable=should_capitalise)
+capitalise_checkbutton = Checkbutton(root,text="capitalise word",variable=should_capitalise,width="20")
+capitalise_checkbutton.select()
 
 should_random_numbers = IntVar()
-random_numbers_checkbutton = Checkbutton(root,text="random numbers",variable=should_random_numbers)
+random_numbers_checkbutton = Checkbutton(root,text="random numbers",variable=should_random_numbers,width="20")
+random_numbers_checkbutton.select()
 
 generate_button = Button(root,text="Generate Passphrase",
 command=lambda: create_passphrase(words_list,int(amount_of_words_inputfield.get()),should_space_words.get(),should_capitalise.get(), should_random_numbers.get()))
 
+passphrase_text = Entry(root,justify='center',width=40)
 
-generate_button.grid(row=0)
-amount_of_words_title.grid(row=1,column=0)
-amount_of_words_inputfield.grid(row=1,column=1)
-space_words_checkbutton.grid(row=2)
-capitalise_checkbutton.grid(row=3)
-random_numbers_checkbutton.grid(row=4)
+passphrase_text.pack()
+generate_button.pack()
+amount_of_words_title.pack()
+amount_of_words_inputfield.pack()
+space_words_checkbutton.pack()
+capitalise_checkbutton.pack()
+random_numbers_checkbutton.pack()
 
+# main program
+words_list = words_file.words_list
+# create passphrase with default settings when program is first loaded
+create_passphrase(words_list,int(amount_of_words_inputfield.get()),should_space_words.get(),should_capitalise.get(), should_random_numbers.get())
+# run gui loop
 root.mainloop()
