@@ -12,8 +12,8 @@ def amount_of_words_input():
 	while True:
 		try:
 			amount_of_words = int(input("Enter amount of words to use: "))
-			if amount_of_words <= 0 or amount_of_words > 100:
-				print("Please enter a reasonable amount of words! (0 < amount <= 100)\n")
+			if amount_of_words <= 0 or amount_of_words > 50:
+				print("Please enter a reasonable amount of words! (0 < amount <= 50)\n")
 				continue
 		
 		except ValueError:# Handle if input is not an integer
@@ -22,11 +22,11 @@ def amount_of_words_input():
 		else:
 			return amount_of_words
 
-def should_space_words_input():
+def yes_no_input(message):
 	while True:
 		try:
-			should_space_words = int(input("Do you want spaces between words? (yes=1,no=0) : "))
-			if should_space_words not in [1,0]:
+			user_input = int(input(message))
+			if user_input not in [1,0]:
 				print("Please enter 1 (yes) or 0 (no)!\n")
 				continue
 
@@ -34,41 +34,7 @@ def should_space_words_input():
 			print("Please enter 1 (yes) or 0 (no)!\n")
 			continue
 		
-		if should_space_words == 1:
-			return True
-		else:
-			return False
-
-def should_random_numbers_input():
-	while True:
-		try:
-			should_random_numbers = int(input("Do you want a random number at end of each word? (yes=1,no=0) : "))
-			if should_random_numbers not in [1,0]:
-				print("Please enter 1 (yes) or 0 (no)!\n")
-				continue
-
-		except ValueError:	# Handle if input is not an integer
-			print("Please enter 1 (yes) or 0 (no)!\n")
-			continue
-		
-		if should_random_numbers == 1:
-			return True
-		else:
-			return False
-
-def should_capitalise_input():
-	while True:
-		try:
-			should_capitalise = int(input("Do you want to capitalise the first letter of each word? (yes=1,no=0) : "))
-			if should_capitalise not in [1,0]:
-				print("Please enter 1 (yes) or 0 (no)!\n")
-				continue
-
-		except ValueError:	# Handle if input is not an integer
-			print("Please enter 1 (yes) or 0 (no)!\n")
-			continue
-		
-		if should_capitalise == 1:
+		if user_input == 1:
 			return True
 		else:
 			return False
@@ -86,6 +52,7 @@ def generate_word_codes(amount_of_words):
 def find_words_list(words_list,word_codes):
 	selected_words=[]
 	for i in range(len(word_codes)):
+		# loop through each key in words_list to find matching word code
 		if word_codes[i] in words_list.keys():
 			selected_words.append(words_list[word_codes[i]])
 		else:
@@ -100,7 +67,7 @@ def create_passphrase(selected_words, should_space_words, should_capitalise, sho
 			selected_words[i] = selected_words[i].capitalize()
 	
 	numbers=['' for i in range(amount_of_words)]
-	add_number_chance = 50
+	add_number_chance = 50	# chance of generating a number at end of each word
 	if (should_random_numbers):
 		for i in range(len(numbers)):
 			chance = random.randint(1,100)
@@ -114,21 +81,19 @@ def create_passphrase(selected_words, should_space_words, should_capitalise, sho
 	
 	passphrase=''
 	for i in range(amount_of_words):
-		passphrase = passphrase+selected_words[i]+numbers[i]+space
+		passphrase += selected_words[i]+numbers[i]+space
 	return passphrase
 
 # main program
 words_list = read_words_file()
 #-------------------------------------------------
 amount_of_words = amount_of_words_input()
-should_space_words = should_space_words_input()
-should_capitalise = should_capitalise_input()
-should_random_numbers = should_random_numbers_input()
+should_space_words = yes_no_input("Do you want a space between words? (yes=1,no=0) : ")
+should_capitalise = yes_no_input("Do you want to capitalise each word? (yes=1,no=0) : ")
+should_random_numbers = yes_no_input("Do you want a random number at end of each word? (yes=1,no=0) : ")
 #-------------------------------------------------
 word_codes = generate_word_codes(amount_of_words)
 selected_words = find_words_list(words_list, word_codes)
-print(word_codes)
-print(selected_words)
 #-------------------------------------------------
 passphrase = create_passphrase(selected_words, should_space_words, should_capitalise, should_random_numbers)
-print(passphrase)
+print("Passphrase:",passphrase)
