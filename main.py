@@ -1,51 +1,54 @@
 import random
 import words_file
-from tkinter import *
+import tkinter as tk
 
 def main():
-	# create the gui
-	root = Tk()
+	# create the main gui frame
+	root = tk.Tk()
 	root.title("Passphrase generator")
 	root.geometry("400x500")
 
-	reg = root.register(callback) 
+	reg = root.register(callback)	# used to call validation function when user is updating an inputfield
 
-	amount_of_words_title = Label(root,text="Amount of words (1-20):")
-	amount_of_words_inputfield = Entry(root,width=2)
-	amount_of_words_inputfield.insert(0, 4)
+	passphrase_text = tk.Text(root,width=40,height=3)
+
+	show_passphrase = tk.IntVar()
+	show_passphrase_checkbutton = tk.Checkbutton(root,text="Show passphrase",variable=show_passphrase,width="20",command=lambda: toggle_passphrase_visibility(passphrase_text,show_passphrase.get()))
+
+	generate_button = tk.Button(root,text="Generate Passphrase",
+	command=lambda: inputfield_validation(words_list,amount_of_words_var.get(),should_space_words.get(),should_capitalise.get(),capitalise_chance_var.get(),should_add_numbers.get(),add_number_chance_var.get(),passphrase_text,root))
+
+	amount_of_words_var = tk.IntVar(root, value=6)
+	amount_of_words_title = tk.Label(root,text="Amount of words (1-20):")
+	amount_of_words_inputfield = tk.Entry(root,width=2,textvariable=amount_of_words_var)
 	amount_of_words_inputfield.config(validate ="key",validatecommand =(reg, '%P', 20))
 
-	should_space_words = IntVar()
-	space_words_checkbutton = Checkbutton(root,text="Space between words",variable=should_space_words,width="20")
-	space_words_checkbutton.select()
+	should_space_words = tk.IntVar()
+	space_words_checkbutton = tk.Checkbutton(root,text="Space between words",variable=should_space_words,width="20")
 
-	should_capitalise = IntVar()
-	capitalise_checkbutton = Checkbutton(root,text="capitalise letters",variable=should_capitalise,width="20",command=lambda: toggle_child_options(capitalise_chance_title,capitalise_chance_inputfield,should_capitalise.get()))
-	capitalise_checkbutton.select()
+	should_capitalise = tk.IntVar()
+	capitalise_checkbutton = tk.Checkbutton(root,text="capitalise letters",variable=should_capitalise,width="20",command=lambda: toggle_child_options(capitalise_chance_title,capitalise_chance_inputfield,should_capitalise.get()))
 
-	capitalise_chance_title = Label(root,text="Chance of each letter being capitalised:")
-	capitalise_chance_inputfield = Entry(root,width="3",justify='center')
-	capitalise_chance_inputfield.insert(0, 20)
+	capitalise_chance_var = tk.IntVar(root, value=10)
+	capitalise_chance_title = tk.Label(root,text="Chance of each letter being capitalised:")
+	capitalise_chance_inputfield = tk.Entry(root,textvariable=capitalise_chance_var,width="3",justify='center')
 	capitalise_chance_inputfield.config(validate ="key",validatecommand =(reg, '%P', 100))
 
-	should_random_numbers = IntVar()
-	random_numbers_checkbutton = Checkbutton(root,text="random numbers",variable=should_random_numbers,width="20",command=lambda: toggle_child_options(add_number_chance_title,add_number_chance_inputfield,should_random_numbers.get()))
-	random_numbers_checkbutton.select()
+	should_add_numbers = tk.IntVar()
+	should_add_numbers_checkbutton = tk.Checkbutton(root,text="random numbers",variable=should_add_numbers,width="20",command=lambda: toggle_child_options(add_number_chance_title,add_number_chance_inputfield,should_add_numbers.get()))
 
-	add_number_chance_title = Label(root,text="Add number chance:")
-	add_number_chance_inputfield = Entry(root,width="3",justify='center')
-	add_number_chance_inputfield.insert(0, 50)
+	add_number_chance_var = tk.IntVar(root, value=50)
+	add_number_chance_title = tk.Label(root,text="Add number chance:")
+	add_number_chance_inputfield = tk.Entry(root,textvariable=add_number_chance_var,width="3",justify='center')
 	add_number_chance_inputfield.config(validate ="key",validatecommand =(reg, '%P', 100))
 
-	generate_button = Button(root,text="Generate Passphrase",
-	command=lambda: inputfield_validation(words_list,amount_of_words_inputfield.get(),should_space_words.get(),should_capitalise.get(),capitalise_chance_inputfield.get(),should_random_numbers.get(),add_number_chance_inputfield.get(),passphrase_text,root))
-
-	passphrase_text = Entry(root,justify='center',width=40)
-
-	show_passphrase = IntVar()
-	show_passphrase_checkbutton = Checkbutton(root,text="Show passphrase",variable=show_passphrase,width="20",command=lambda: toggle_passphrase_visibility(passphrase_text,show_passphrase.get()))
+	# select checkboxes as default setting
 	show_passphrase_checkbutton.select()
+	space_words_checkbutton.select()
+	capitalise_checkbutton.select()
+	should_add_numbers_checkbutton.select()
 
+	# place all gui items into frame
 	passphrase_text.pack(pady=15)
 	show_passphrase_checkbutton.pack()
 	generate_button.pack(pady=10)
@@ -55,28 +58,53 @@ def main():
 	capitalise_checkbutton.pack()
 	capitalise_chance_title.pack()
 	capitalise_chance_inputfield.pack()
-	random_numbers_checkbutton.pack()
+	should_add_numbers_checkbutton.pack()
 	add_number_chance_title.pack()
 	add_number_chance_inputfield.pack()
 	
 	# create passphrase with default settings when program is first loaded
-	create_passphrase(words_list,int(amount_of_words_inputfield.get()),should_space_words.get(),should_capitalise.get(),int(capitalise_chance_inputfield.get()),should_random_numbers.get(),int(add_number_chance_inputfield.get()),passphrase_text,root)
-	# run gui loop
-	root.mainloop()
+	create_passphrase(words_list,amount_of_words_var.get(),should_space_words.get(),should_capitalise.get(),capitalise_chance_var.get(),should_add_numbers.get(),add_number_chance_var.get(),passphrase_text,root)
 
-def inputfield_validation(words_list,amount_of_words,should_space_words,should_capitalise,capitalise_letter_chance,should_random_numbers,add_number_chance,passphrase_text,root):
+	root.mainloop()	# run gui loop
+
+def inputfield_validation(words_list,amount_of_words,should_space_words,should_capitalise,capitalise_letter_chance,should_add_numbers,add_number_chance,passphrase_text,root):
+	# if an inputfield is empty then set its variable to its default value
 	if (not amount_of_words):
 		amount_of_words = 4
 	elif not capitalise_letter_chance:
 		capitalise_letter_chance = 20
 	elif not add_number_chance:
 		add_number_chance = 50
+	
+	# if all inputs are integers and meet requirements then generate passphrase
 	else:
-		# if all inputs are integers and meet requirements then generate passphrase
-		print("word generated")
-		create_passphrase(words_list,int(amount_of_words),should_space_words,should_capitalise,int(capitalise_letter_chance), should_random_numbers,int(add_number_chance),passphrase_text,root)
+		create_passphrase(words_list,amount_of_words,should_space_words,should_capitalise,capitalise_letter_chance,should_add_numbers,add_number_chance,passphrase_text,root)
+	
+def toggle_child_options(title,inputfield,enabled):
+	if (not enabled):
+		title.config(state='disabled')
+		inputfield.config(state='disabled')
+	else:
+		title.config(state='normal')
+		inputfield.config(state='normal')
 
-def create_passphrase(words_list,amount_of_words,should_space_words, should_capitalise, capitalise_letter_chance, should_random_numbers, add_number_chance,passphrase_text,root):
+def toggle_passphrase_visibility(text,enabled):
+	if (not enabled):
+		text.config(show='*')
+	else:
+		text.config(show='')
+
+# for validating what the user wants to input into an inputfield
+def callback(input,max):
+	if input.isdigit() and int(input) < int(max)+1 and input != '0': 
+		return True
+	elif input == "":
+		return True
+	else: 
+		print("wanted to input: " + input)
+		return False
+
+def create_passphrase(words_list,amount_of_words,should_space_words, should_capitalise, capitalise_letter_chance, should_add_numbers, add_number_chance,passphrase_text,root):
 	# create list of random word codes
 	word_codes = generate_word_codes(amount_of_words)
 
@@ -88,7 +116,7 @@ def create_passphrase(words_list,amount_of_words,should_space_words, should_capi
 		capitalise_selected_word(selected_words,capitalise_letter_chance/100)
 	
 	# generate random numbers to add to passphrase if desired
-	if (should_random_numbers):
+	if (should_add_numbers):
 		numbers = generate_random_numbers_to_add(amount_of_words,add_number_chance)
 	else:
 		numbers=['' for i in range(amount_of_words)]	# fill with blank strings incase user does not want numbers
@@ -105,8 +133,8 @@ def create_passphrase(words_list,amount_of_words,should_space_words, should_capi
 	passphrase = passphrase.rstrip()	# remove last space at end of passphrase
 
 	# replace current passphrase being displayed
-	passphrase_text.delete(0, END)
-	passphrase_text.insert(0, passphrase)
+	passphrase_text.delete('1.0', tk.END)
+	passphrase_text.insert('1.0', passphrase)
 
 	# clear the users clipboard and add passphrase to it
 	root.clipboard_clear()
@@ -153,37 +181,11 @@ def generate_random_numbers_to_add(amount_of_words,add_number_chance):
 			numbers.append('')
 	return numbers
 
-def toggle_child_options(title,inputfield,enabled):
-	if (not enabled):
-		title.config(state='disabled')
-		inputfield.config(state='disabled')
-	else:
-		title.config(state='normal')
-		inputfield.config(state='normal')
-
-def toggle_passphrase_visibility(text,enabled):
-	if (not enabled):
-		text.config(show='*')
-	else:
-		text.config(show='')
-
-# for validating what the user wants to input into an inputfield
-def callback(input,max):
-	if input.isdigit() and int(input) < int(max)+1 and input != '0': 
-		return True
-	elif input == "":
-		return True
-	else: 
-		print("wanted to input: " + input)
-		return False
 
 if __name__ == "__main__":
 	words_list = words_file.words_list	# import dictionary of words from other file
 	main()
 
-#changelog
-# user cannot enter letters or values out of range into input fields.
-# much faster way of randomly capitalising letters
-# 30x faster capitalising words
-# 7x faster generating word codes
-# 3x faster generating random numbers
+# changelog
+# inputfields now have their own variables instead of having to read the value every time you want to use it
+# tkinter no longer imported as a wildcard
