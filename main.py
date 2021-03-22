@@ -1,99 +1,189 @@
-import csv,random
+import random
+import words_file
+from tkinter import *
 
-def read_words_file():
-	words_list = {}
-	with open('words.csv', 'r') as f:
-		reader = csv.reader(f, delimiter='\t')
-		for row in reader:
-			words_list.update({row[0]:row[1]})
-	return words_list
+def main():
+	# create the gui
+	root = Tk()
+	root.title("Passphrase generator")
+	root.geometry("400x500")
 
-def amount_of_words_input():
-	while True:
-		try:
-			amount_of_words = int(input("Enter amount of words to use: "))
-			if amount_of_words <= 0 or amount_of_words > 50:
-				print("Please enter a reasonable amount of words! (0 < amount <= 50)\n")
-				continue
-		
-		except ValueError:# Handle if input is not an integer
-			print("Please enter an amount of words!\n")
-			continue
-		else:
-			return amount_of_words
+	reg = root.register(callback) 
 
-def yes_no_input(message):
-	while True:
-		try:
-			user_input = int(input(message))
-			if user_input not in [1,0]:
-				print("Please enter 1 (yes) or 0 (no)!\n")
-				continue
+	amount_of_words_title = Label(root,text="Amount of words (1-20):")
+	amount_of_words_inputfield = Entry(root,width=2)
+	amount_of_words_inputfield.insert(0, 4)
+	amount_of_words_inputfield.config(validate ="key",validatecommand =(reg, '%P', 20))
 
-		except ValueError:	# Handle if input is not an integer
-			print("Please enter 1 (yes) or 0 (no)!\n")
-			continue
-		
-		if user_input == 1:
-			return True
-		else:
-			return False
+	should_space_words = IntVar()
+	space_words_checkbutton = Checkbutton(root,text="Space between words",variable=should_space_words,width="20")
+	space_words_checkbutton.select()
 
-def generate_word_codes(amount_of_words):
-	word_codes=[]
-	for i in range(amount_of_words):
-		word_code=''
-		for i in range(5):
-			roll = random.SystemRandom().randint(1, 6)
-			word_code += str(roll)
-		word_codes.append(word_code)
-	return word_codes
+	should_capitalise = IntVar()
+	capitalise_checkbutton = Checkbutton(root,text="capitalise letters",variable=should_capitalise,width="20",command=lambda: toggle_child_options(capitalise_chance_title,capitalise_chance_inputfield,should_capitalise.get()))
+	capitalise_checkbutton.select()
 
-def find_words_list(words_list,word_codes):
-	selected_words=[]
-	for i in range(len(word_codes)):
-		# loop through each key in words_list to find matching word code
-		if word_codes[i] in words_list.keys():
-			selected_words.append(words_list[word_codes[i]])
-		else:
-			print("Problem occured with finding word in list")
-			quit()
-	return selected_words
+	capitalise_chance_title = Label(root,text="Chance of each letter being capitalised:")
+	capitalise_chance_inputfield = Entry(root,width="3",justify='center')
+	capitalise_chance_inputfield.insert(0, 20)
+	capitalise_chance_inputfield.config(validate ="key",validatecommand =(reg, '%P', 100))
 
-def create_passphrase(selected_words, should_space_words, should_capitalise, should_random_numbers):
-	amount_of_words = len(selected_words)
-	if (should_capitalise):
-		for i in range(amount_of_words):
-			selected_words[i] = selected_words[i].capitalize()
+	should_random_numbers = IntVar()
+	random_numbers_checkbutton = Checkbutton(root,text="random numbers",variable=should_random_numbers,width="20",command=lambda: toggle_child_options(add_number_chance_title,add_number_chance_inputfield,should_random_numbers.get()))
+	random_numbers_checkbutton.select()
+
+	add_number_chance_title = Label(root,text="Add number chance:")
+	add_number_chance_inputfield = Entry(root,width="3",justify='center')
+	add_number_chance_inputfield.insert(0, 50)
+	add_number_chance_inputfield.config(validate ="key",validatecommand =(reg, '%P', 100))
+
+	generate_button = Button(root,text="Generate Passphrase",
+	command=lambda: inputfield_validation(words_list,amount_of_words_inputfield.get(),should_space_words.get(),should_capitalise.get(),capitalise_chance_inputfield.get(),should_random_numbers.get(),add_number_chance_inputfield.get(),passphrase_text,root))
+
+	passphrase_text = Entry(root,justify='center',width=40)
+
+	show_passphrase = IntVar()
+	show_passphrase_checkbutton = Checkbutton(root,text="Show passphrase",variable=show_passphrase,width="20",command=lambda: toggle_passphrase_visibility(passphrase_text,show_passphrase.get()))
+	show_passphrase_checkbutton.select()
+
+	passphrase_text.pack(pady=15)
+	show_passphrase_checkbutton.pack()
+	generate_button.pack(pady=10)
+	amount_of_words_title.pack()
+	amount_of_words_inputfield.pack()
+	space_words_checkbutton.pack()
+	capitalise_checkbutton.pack()
+	capitalise_chance_title.pack()
+	capitalise_chance_inputfield.pack()
+	random_numbers_checkbutton.pack()
+	add_number_chance_title.pack()
+	add_number_chance_inputfield.pack()
 	
-	numbers=['' for i in range(amount_of_words)]
-	add_number_chance = 50	# chance of generating a number at end of each word
+	# create passphrase with default settings when program is first loaded
+	create_passphrase(words_list,int(amount_of_words_inputfield.get()),should_space_words.get(),should_capitalise.get(),int(capitalise_chance_inputfield.get()),should_random_numbers.get(),int(add_number_chance_inputfield.get()),passphrase_text,root)
+	# run gui loop
+	root.mainloop()
+
+def inputfield_validation(words_list,amount_of_words,should_space_words,should_capitalise,capitalise_letter_chance,should_random_numbers,add_number_chance,passphrase_text,root):
+	if (not amount_of_words):
+		amount_of_words = 4
+	elif not capitalise_letter_chance:
+		capitalise_letter_chance = 20
+	elif not add_number_chance:
+		add_number_chance = 50
+	else:
+		# if all inputs are integers and meet requirements then generate passphrase
+		print("word generated")
+		create_passphrase(words_list,int(amount_of_words),should_space_words,should_capitalise,int(capitalise_letter_chance), should_random_numbers,int(add_number_chance),passphrase_text,root)
+
+def create_passphrase(words_list,amount_of_words,should_space_words, should_capitalise, capitalise_letter_chance, should_random_numbers, add_number_chance,passphrase_text,root):
+	# create list of random word codes
+	word_codes = generate_word_codes(amount_of_words)
+
+	# find words that match the generated word codes
+	selected_words = find_selected_words(word_codes,words_list)
+
+	# capitalise letters in words if desired
+	if (should_capitalise):
+		capitalise_selected_word(selected_words,capitalise_letter_chance/100)
+	
+	# generate random numbers to add to passphrase if desired
 	if (should_random_numbers):
-		for i in range(len(numbers)):
-			chance = random.randint(1,100)
-			if chance <= add_number_chance:
-				numbers[i] = str(random.SystemRandom().randint(1, 6))
+		numbers = generate_random_numbers_to_add(amount_of_words,add_number_chance)
+	else:
+		numbers=['' for i in range(amount_of_words)]	# fill with blank strings incase user does not want numbers
 
 	if (should_space_words):
 		space = ' '
 	else:
 		space = ''
 	
+	# create passphrase
 	passphrase=''
 	for i in range(amount_of_words):
 		passphrase += selected_words[i]+numbers[i]+space
-	return passphrase
+	passphrase = passphrase.rstrip()	# remove last space at end of passphrase
 
-# main program
-words_list = read_words_file()
-#-------------------------------------------------
-amount_of_words = amount_of_words_input()
-should_space_words = yes_no_input("Do you want a space between words? (yes=1,no=0) : ")
-should_capitalise = yes_no_input("Do you want to capitalise each word? (yes=1,no=0) : ")
-should_random_numbers = yes_no_input("Do you want a random number at end of each word? (yes=1,no=0) : ")
-#-------------------------------------------------
-word_codes = generate_word_codes(amount_of_words)
-selected_words = find_words_list(words_list, word_codes)
-#-------------------------------------------------
-passphrase = create_passphrase(selected_words, should_space_words, should_capitalise, should_random_numbers)
-print("Passphrase:",passphrase)
+	# replace current passphrase being displayed
+	passphrase_text.delete(0, END)
+	passphrase_text.insert(0, passphrase)
+
+	# clear the users clipboard and add passphrase to it
+	root.clipboard_clear()
+	root.clipboard_append(passphrase)
+
+def generate_word_codes(amount_of_words):
+	word_codes=[]
+	for i in range(amount_of_words):
+		rolls = random.sample(range(1,6),5)	# generate list of 5 random dice rolls
+		rolls_strings = [str(i) for i in rolls]	# convert integer list to string list 
+		word_codes.append("".join(rolls_strings))	# add the rolls together to make a code and add to list
+	return word_codes
+
+def find_selected_words(word_codes,words_list):
+	selected_words=[]
+	for code in word_codes:
+		# loop through each key in words_list to find matching word code
+		if code in words_list.keys():
+			selected_words.append(words_list[code])
+		else:
+			print("Problem occured with finding a word in list")
+			quit()
+	return selected_words
+
+def capitalise_selected_word(selected_words,capitalise_letter_chance):
+	for i, word in enumerate(selected_words):
+			word_letters = list(word)	# create list of all characters in word
+
+			for ii, letter in enumerate(word_letters):	# loop through all letters in word_letters
+				if random.random() <= capitalise_letter_chance:	# check if random chance allows letter to be capitalised
+					word_letters[ii] = letter.upper()
+			
+			# replace word with new letters
+			selected_words[i] = "".join(word_letters)
+	return selected_words
+
+def generate_random_numbers_to_add(amount_of_words,add_number_chance):
+	numbers=[]
+	add_number_chance = add_number_chance/100
+	for i in range(amount_of_words):
+		if random.random() <= add_number_chance:
+			numbers.append(str(random.SystemRandom().randint(1, 9)))			
+		else:
+			numbers.append('')
+	return numbers
+
+def toggle_child_options(title,inputfield,enabled):
+	if (not enabled):
+		title.config(state='disabled')
+		inputfield.config(state='disabled')
+	else:
+		title.config(state='normal')
+		inputfield.config(state='normal')
+
+def toggle_passphrase_visibility(text,enabled):
+	if (not enabled):
+		text.config(show='*')
+	else:
+		text.config(show='')
+
+# for validating what the user wants to input into an inputfield
+def callback(input,max):
+	if input.isdigit() and int(input) < int(max)+1 and input != '0': 
+		return True
+	elif input == "":
+		return True
+	else: 
+		print("wanted to input: " + input)
+		return False
+
+if __name__ == "__main__":
+	words_list = words_file.words_list	# import dictionary of words from other file
+	main()
+
+#changelog
+# user cannot enter letters or values out of range into input fields.
+# much faster way of randomly capitalising letters
+# 30x faster capitalising words
+# 7x faster generating word codes
+# 3x faster generating random numbers
